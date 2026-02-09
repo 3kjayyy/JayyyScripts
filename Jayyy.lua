@@ -3,108 +3,111 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
 
 -- [[ CONFIGURATION ]]
-local CorrectKey = "JAY-39MF-7XQ5-2LY8" --
+local CorrectKey = "JAY-39MF-7XQ5-2LY8"
 local espEnabled, aimbotEnabled = false, false
 local fovRadius = 75 
-local maxFOV = 400
+local smoothing = 0.2 -- Lower = faster/snappier
 
--- [[ FOV CIRCLE ]]
-local fov_circle = Drawing.new("Circle")
-fov_circle.Thickness = 1
-fov_circle.Radius = fovRadius
-fov_circle.Color = Color3.fromRGB(0, 255, 255)
-fov_circle.Visible = false
+-- [[ DRAWING OBJECTS ]]
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 1
+fovCircle.Color = Color3.fromRGB(0, 255, 255)
+fovCircle.Visible = false
 
--- [[ DRAGGING FUNCTION ]]
-local function makeDraggable(frame)
-    local dragging, dragInput, dragStart, startPos
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true; dragStart = input.Position; startPos = frame.Position
-            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+-- [[ AIMBOT ENGINE ]]
+local function getClosestPlayer()
+    local target = nil
+    local dist = fovRadius
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            local pos, onScreen = Camera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
+            local mouseDist = (Vector2.new(pos.X, pos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+            if onScreen and mouseDist < dist then
+                dist = mouseDist
+                target = plr
+            end
         end
-    end)
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    return target
+end
+
+-- [[ ESP ENGINE ]]
+local function createESP(plr)
+    local box = Drawing.new("Square")
+    box.Thickness = 1
+    box.Filled = false
+    box.Color = Color3.fromRGB(255, 255, 255)
+    
+    local updater
+    updater = RunService.RenderStepped:Connect(function()
+        if espEnabled and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            local rootPos, onScreen = Camera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
+            if onScreen then
+                box.Size = Vector2.new(2000 / rootPos.Z, 2500 / rootPos.Z)
+                box.Position = Vector2.new(rootPos.X - box.Size.X / 2, rootPos.Y - box.Size.Y / 2)
+                box.Visible = true
+            else
+                box.Visible = false
+            end
+        else
+            box.Visible = false
+            if not plr or not plr.Parent then
+                box:Remove()
+                updater:Disconnect()
+            end
         end
     end)
 end
 
--- [[ UI SETUP ]]
+-- Initialize ESP for players
+for _, p in pairs(Players:GetPlayers()) do if p ~= LocalPlayer then createESP(p) end end
+Players.PlayerAdded:Connect(createESP)
+
+-- [[ UI & DRAGGING ]]
 local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-
--- Key System (Movable)
-local KeyFrame = Instance.new("Frame", ScreenGui)
-KeyFrame.Size = UDim2.new(0, 300, 0, 150); KeyFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
-KeyFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Instance.new("UICorner", KeyFrame)
-Instance.new("UIStroke", KeyFrame).Color = Color3.fromRGB(0, 255, 255)
-makeDraggable(KeyFrame)
-
-local KeyInput = Instance.new("TextBox", KeyFrame)
-KeyInput.Size = UDim2.new(0, 240, 0, 35); KeyInput.Position = UDim2.new(0.5, -120, 0, 50)
-KeyInput.PlaceholderText = "Enter Key..."; KeyInput.Text = ""; KeyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-KeyInput.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", KeyInput)
-
-local KeyBtn = Instance.new("TextButton", KeyFrame)
-KeyBtn.Size = UDim2.new(0, 100, 0, 30); KeyBtn.Position = UDim2.new(0.5, -50, 0, 100)
-KeyBtn.Text = "CHECK"; KeyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-KeyBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", KeyBtn)
-
--- Main Menu (Movable)
 local Main = Instance.new("Frame", ScreenGui)
 Main.Size = UDim2.new(0, 550, 0, 320); Main.Position = UDim2.new(0.5, -275, 0.5, -160)
 Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10); Main.Visible = false; Instance.new("UICorner", Main)
-Instance.new("UIStroke", Main).Color = Color3.fromRGB(45, 45, 45)
-makeDraggable(Main)
+local MainStroke = Instance.new("UIStroke", Main); MainStroke.Color = Color3.fromRGB(45, 45, 45)
 
--- Header
-local Title = Instance.new("TextLabel", Main)
-Title.Size = UDim2.new(1, -20, 0, 40); Title.Position = UDim2.new(0, 15, 0, 0)
-Title.Text = "JAYYY---------------------------------------------MENU" 
-Title.TextColor3 = Color3.new(1,1,1); Title.Font = Enum.Font.Code; Title.BackgroundTransparency = 1; Title.TextXAlignment = 0; Title.TextSize = 13
-
--- Sidebar
+-- Sidebar & Buttons (Layout as requested)
 local Sidebar = Instance.new("Frame", Main)
 Sidebar.Size = UDim2.new(0, 150, 1, -50); Sidebar.Position = UDim2.new(0, 5, 0, 45)
 Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Instance.new("UICorner", Sidebar)
-local SideTitle = Instance.new("TextLabel", Sidebar)
-SideTitle.Size = UDim2.new(1, 0, 0, 40); SideTitle.Text = "MAIN MENU"; SideTitle.TextColor3 = Color3.new(1,1,1)
-SideTitle.Font = Enum.Font.GothamBold; SideTitle.TextSize = 12; SideTitle.BackgroundTransparency = 1
+local STitle = Instance.new("TextLabel", Sidebar); STitle.Size = UDim2.new(1,0,0,40); STitle.Text = "MAIN MENU"; STitle.TextColor3 = Color3.new(1,1,1); STitle.Font = Enum.Font.GothamBold; STitle.TextSize = 12; STitle.BackgroundTransparency = 1
 
--- Centered Toggles
 local Center = Instance.new("Frame", Main)
 Center.Size = UDim2.new(1, -170, 1, -60); Center.Position = UDim2.new(0, 160, 0, 50); Center.BackgroundTransparency = 1
 local Layout = Instance.new("UIListLayout", Center); Layout.HorizontalAlignment = 1; Layout.VerticalAlignment = 1; Layout.Padding = UDim.new(0, 12)
 
-local eBtn = Instance.new("TextButton", Center)
-eBtn.Size = UDim2.new(0, 260, 0, 40); eBtn.Text = "ESP: OFF [K]"; eBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-eBtn.TextColor3 = Color3.new(1,1,1); eBtn.TextSize = 11; eBtn.Font = Enum.Font.Code; Instance.new("UICorner", eBtn)
+local eBtn = Instance.new("TextButton", Center); eBtn.Size = UDim2.new(0, 260, 0, 40); eBtn.Text = "ESP: OFF [K]"; eBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35); eBtn.TextColor3 = Color3.new(1,1,1); eBtn.TextSize = 11; eBtn.Font = Enum.Font.Code; Instance.new("UICorner", eBtn)
+local aBtn = Instance.new("TextButton", Center); aBtn.Size = UDim2.new(0, 260, 0, 40); aBtn.Text = "AIM: OFF [L]"; aBtn.BackgroundColor3 = Color3.fromRGB(0, 70, 140); aBtn.TextColor3 = Color3.new(1,1,1); aBtn.TextSize = 11; aBtn.Font = Enum.Font.Code; Instance.new("UICorner", aBtn)
+local SliderText = Instance.new("TextLabel", Center); SliderText.Size = UDim2.new(0, 260, 0, 35); SliderText.Text = "SCROLL TO ADJUST FOV: " .. fovRadius; SliderText.TextColor3 = Color3.new(1,1,1); SliderText.TextSize = 11; SliderText.BackgroundTransparency = 1; SliderText.Font = Enum.Font.Code
 
-local aBtn = Instance.new("TextButton", Center)
-aBtn.Size = UDim2.new(0, 260, 0, 40); aBtn.Text = "AIM: OFF [L]"; aBtn.BackgroundColor3 = Color3.fromRGB(0, 70, 140)
-aBtn.TextColor3 = Color3.new(1,1,1); aBtn.TextSize = 11; aBtn.Font = Enum.Font.Code; Instance.new("UICorner", aBtn)
-
-local SliderText = Instance.new("TextLabel", Center)
-SliderText.Size = UDim2.new(0, 260, 0, 35); SliderText.Text = "SCROLL TO ADJUST FOV: " .. fovRadius
-SliderText.TextColor3 = Color3.new(1,1,1); SliderText.TextSize = 11; SliderText.BackgroundTransparency = 1; SliderText.Font = Enum.Font.Code
-
--- [[ LOGIC ]]
-KeyBtn.MouseButton1Click:Connect(function()
-    if KeyInput.Text == CorrectKey then KeyFrame.Visible = false; Main.Visible = true else KeyInput.Text = ""; KeyInput.PlaceholderText = "WRONG KEY" end
+-- [[ MAIN LOOP ]]
+RunService.RenderStepped:Connect(function()
+    if aimbotEnabled then
+        fovCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+        fovCircle.Visible = true
+        fovCircle.Radius = fovRadius
+        
+        local target = getClosestPlayer()
+        if target and target.Character and target.Character:FindFirstChild("Head") then
+            local targetPos = Camera:WorldToViewportPoint(target.Character.Head.Position)
+            mousemoverel((targetPos.X - Mouse.X) * smoothing, (targetPos.Y - Mouse.Y) * smoothing)
+        end
+    else
+        fovCircle.Visible = false
+    end
 end)
 
+-- Functionality & Keybinds
 local function toggleK() espEnabled = not espEnabled; eBtn.Text = "ESP: "..(espEnabled and "ON [K]" or "OFF [K]"); eBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(130,0,0) or Color3.fromRGB(35,35,35) end
-local function toggleL() aimbotEnabled = not aimbotEnabled; aBtn.Text = "AIM: "..(aimbotEnabled and "ON [L]" or "OFF [L]"); aBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0,40,90) or Color3.fromRGB(0,70,140); fov_circle.Visible = aimbotEnabled end
+local function toggleL() aimbotEnabled = not aimbotEnabled; aBtn.Text = "AIM: "..(aimbotEnabled and "ON [L]" or "OFF [L]"); aBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0,40,90) or Color3.fromRGB(0,70,140) end
 
 eBtn.MouseButton1Click:Connect(toggleK); aBtn.MouseButton1Click:Connect(toggleL)
-
-UserInputService.InputBegan:Connect(function(i, g) if g or not Main.Visible then return end if i.KeyCode == Enum.KeyCode.K then toggleK() elseif i.KeyCode == Enum.KeyCode.L then toggleL() end end)
-Main.InputChanged:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseWheel then fovRadius = math.clamp(fovRadius + (i.Position.Z * 10), 10, maxFOV); SliderText.Text = "SCROLL TO ADJUST FOV: "..fovRadius; fov_circle.Radius = fovRadius end end)
-RunService.RenderStepped:Connect(function() if aimbotEnabled then fov_circle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2) end end)
+UserInputService.InputBegan:Connect(function(i, g) if g then return end if i.KeyCode == Enum.KeyCode.K then toggleK() elseif i.KeyCode == Enum.KeyCode.L then toggleL() end end)
+Main.InputChanged:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseWheel then fovRadius = math.clamp(fovRadius + (i.Position.Z * 10), 10, maxFOV); SliderText.Text = "SCROLL TO ADJUST FOV: "..fovRadius end end)
