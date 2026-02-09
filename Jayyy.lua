@@ -5,87 +5,78 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 -- [[ CONFIGURATION ]]
-local CorrectKey = "JAY-39MF-7XQ5-2LY8"
+local CorrectKey = "JAY-39MF-7XQ5-2LY8" --
 local espEnabled, aimbotEnabled = false, false
 local fovRadius = 75 
 
 -- [[ UI ROOT ]]
 local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-ScreenGui.Name = "Jayyy_Final_v18"
+ScreenGui.Name = "Jayyy_Clean_v19"
 
--- [[ KEY SYSTEM GUI ]]
+-- [[ KEY SYSTEM ]]
 local KeyFrame = Instance.new("Frame", ScreenGui)
 KeyFrame.Size = UDim2.new(0, 300, 0, 150)
 KeyFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
 KeyFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 Instance.new("UICorner", KeyFrame)
-Instance.new("UIStroke", KeyFrame).Color = Color3.fromRGB(0, 255, 255)
-
-local KeyTitle = Instance.new("TextLabel", KeyFrame)
-KeyTitle.Size = UDim2.new(1, 0, 0, 40); KeyTitle.Text = "ENTER KEY"; KeyTitle.TextColor3 = Color3.new(1,1,1)
-KeyTitle.BackgroundTransparency = 1; KeyTitle.Font = Enum.Font.GothamBold
+local KeyStroke = Instance.new("UIStroke", KeyFrame); KeyStroke.Color = Color3.fromRGB(0, 255, 255)
 
 local KeyInput = Instance.new("TextBox", KeyFrame)
 KeyInput.Size = UDim2.new(0, 240, 0, 35); KeyInput.Position = UDim2.new(0.5, -120, 0, 50)
-KeyInput.PlaceholderText = "Paste Key Here..."; KeyInput.Text = ""
+KeyInput.PlaceholderText = "Enter Key..."; KeyInput.Text = ""
 KeyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30); KeyInput.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", KeyInput)
 
 local KeyBtn = Instance.new("TextButton", KeyFrame)
 KeyBtn.Size = UDim2.new(0, 100, 0, 30); KeyBtn.Position = UDim2.new(0.5, -50, 0, 100)
-KeyBtn.Text = "CHECK"; KeyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-KeyBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", KeyBtn)
+KeyBtn.Text = "CHECK"; KeyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215); KeyBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", KeyBtn)
 
--- [[ MAIN MENU GUI (Hidden at start) ]]
+-- [[ MAIN MENU ]]
 local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0, 600, 0, 350)
-Main.Position = UDim2.new(0.5, -300, 0.5, -175)
+Main.Size = UDim2.new(0, 500, 0, 300) -- Clean Landscape Size
+Main.Position = UDim2.new(0.5, -250, 0.5, -150)
 Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 Main.Visible = false
 Instance.new("UICorner", Main)
-Instance.new("UIStroke", Main).Color = Color3.fromRGB(50, 50, 50)
+Instance.new("UIStroke", Main).Color = Color3.fromRGB(40, 40, 40)
 
--- Sidebar (Fixed inside Main)
-local Sidebar = Instance.new("Frame", Main)
-Sidebar.Size = UDim2.new(0, 150, 1, -50); Sidebar.Position = UDim2.new(0, 5, 0, 45)
-Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Sidebar.BorderSizePixel = 0
-Instance.new("UICorner", Sidebar)
-
-local SideLayout = Instance.new("UIListLayout", Sidebar)
-SideLayout.Padding = UDim.new(0, 5); SideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
--- Top Bar Style
+-- Header
 local Title = Instance.new("TextLabel", Main)
 Title.Size = UDim2.new(1, -20, 0, 40); Title.Position = UDim2.new(0, 15, 0, 0)
 Title.Text = "JAYYY---------------------------------------------MENU" 
-Title.TextColor3 = Color3.new(1,1,1); Title.Font = Enum.Font.Code; Title.BackgroundTransparency = 1; Title.TextXAlignment = 0
+Title.TextColor3 = Color3.new(1,1,1); Title.Font = Enum.Font.Code; Title.BackgroundTransparency = 1; Title.TextXAlignment = 0; Title.TextSize = 14
 
--- Content Area
-local MainCheatPage = Instance.new("Frame", Main)
-MainCheatPage.Size = UDim2.new(1, -170, 1, -60); MainCheatPage.Position = UDim2.new(0, 160, 0, 50)
-MainCheatPage.BackgroundTransparency = 1; MainCheatPage.Visible = false
-local Layout = Instance.new("UIListLayout", MainCheatPage)
-Layout.HorizontalAlignment = 1; Layout.VerticalAlignment = 1; Layout.Padding = UDim.new(0, 20)
+-- Sidebar (Now just for branding/Main Menu)
+local Sidebar = Instance.new("Frame", Main)
+Sidebar.Size = UDim2.new(0, 140, 1, -50); Sidebar.Position = UDim2.new(0, 5, 0, 45)
+Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Instance.new("UICorner", Sidebar)
 
--- Buttons
-local function createSideBtn(text, isMain)
-    local b = Instance.new("TextButton", Sidebar)
-    b.Size = UDim2.new(0, 140, 0, 35); b.Text = text; b.BackgroundTransparency = 1; b.TextColor3 = Color3.fromRGB(180,180,180)
-    b.Font = Enum.Font.GothamBold; b.TextSize = 12
-    b.MouseButton1Click:Connect(function() MainCheatPage.Visible = isMain end)
-    return b
-end
+local MainTabBtn = Instance.new("TextButton", Sidebar)
+MainTabBtn.Size = UDim2.new(1, 0, 0, 40); MainTabBtn.BackgroundTransparency = 1
+MainTabBtn.Text = "MAIN MENU"; MainTabBtn.TextColor3 = Color3.new(1,1,1)
+MainTabBtn.Font = Enum.Font.GothamBold; MainTabBtn.TextSize = 12
 
-local mainTabBtn = createSideBtn("MAIN MENU", true)
-createSideBtn("AIMBOT MENU", false); createSideBtn("PLAYER MENU", false); createSideBtn("SETTINGS", false)
+-- Centered Content Area
+local CenterFrame = Instance.new("Frame", Main)
+CenterFrame.Size = UDim2.new(1, -160, 1, -60); CenterFrame.Position = UDim2.new(0, 155, 0, 50)
+CenterFrame.BackgroundTransparency = 1
 
-local eBtn = Instance.new("TextButton", MainCheatPage)
-eBtn.Size = UDim2.new(0, 280, 0, 45); eBtn.Text = "ESP: OFF [K]"; eBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-Instance.new("UICorner", eBtn); Instance.new("UIStroke", eBtn).Color = Color3.new(1,1,1)
+local Layout = Instance.new("UIListLayout", CenterFrame)
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center; Layout.VerticalAlignment = Enum.VerticalAlignment.Center
+Layout.Padding = UDim.new(0, 15)
 
-local aBtn = Instance.new("TextButton", MainCheatPage)
-aBtn.Size = UDim2.new(0, 280, 0, 45); aBtn.Text = "AIM: OFF [L]"; aBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 160)
-Instance.new("UICorner", aBtn); Instance.new("UIStroke", aBtn).Color = Color3.new(0, 1, 1)
+-- Small Text Toggles
+local eBtn = Instance.new("TextButton", CenterFrame)
+eBtn.Size = UDim2.new(0, 240, 0, 35); eBtn.Text = "ESP: OFF [K]"; eBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+eBtn.TextColor3 = Color3.new(1,1,1); eBtn.TextSize = 12; eBtn.Font = Enum.Font.Code -- Smaller Text Size
+Instance.new("UICorner", eBtn); Instance.new("UIStroke", eBtn).Color = Color3.fromRGB(100, 100, 100)
+
+local aBtn = Instance.new("TextButton", CenterFrame)
+aBtn.Size = UDim2.new(0, 240, 0, 35); aBtn.Text = "AIM: OFF [L]"; aBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 160)
+aBtn.TextColor3 = Color3.new(1,1,1); aBtn.TextSize = 12; aBtn.Font = Enum.Font.Code -- Smaller Text Size
+Instance.new("UICorner", aBtn); Instance.new("UIStroke", aBtn).Color = Color3.fromRGB(0, 255, 255)
 
 -- Key Logic
 KeyBtn.MouseButton1Click:Connect(function()
@@ -93,7 +84,7 @@ KeyBtn.MouseButton1Click:Connect(function()
         KeyFrame.Visible = false
         Main.Visible = true
     else
-        KeyInput.Text = ""; KeyInput.PlaceholderText = "WRONG KEY!"
+        KeyInput.PlaceholderText = "INVALID KEY"; KeyInput.Text = ""
     end
 end)
 
@@ -110,4 +101,3 @@ local function toggleL()
 end
 
 eBtn.MouseButton1Click:Connect(toggleK); aBtn.MouseButton1Click:Connect(toggleL)
-UserInputService.InputBegan:Connect(function(i, p) if p then return end if i.KeyCode == Enum.KeyCode.K then toggleK() end if i.KeyCode == Enum.KeyCode.L then toggleL() end end)
