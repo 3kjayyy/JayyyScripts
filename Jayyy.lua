@@ -37,7 +37,7 @@ KeyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215); KeyBtn.TextColor3 = Color
 -- [[ MAIN MENU (GRAFFITI STYLE) ]]
 local Main = Instance.new("ImageLabel", ScreenGui)
 Main.Size = UDim2.new(0, 550, 0, 320); Main.Position = UDim2.new(0.5, -275, 0.5, -160)
-Main.Image = "rbxassetid://10850255319" -- Your Graffiti ID
+Main.Image = "rbxassetid://10850255319"
 Main.ImageColor3 = Color3.fromRGB(120, 120, 120); Main.BackgroundColor3 = Color3.fromRGB(15,15,15)
 Main.ScaleType = Enum.ScaleType.Crop; Main.Visible = false; Main.Active = true; Main.Draggable = true
 Instance.new("UICorner", Main)
@@ -48,7 +48,7 @@ Title.Size = UDim2.new(1, -20, 0, 40); Title.Position = UDim2.new(0, 15, 0, 0)
 Title.Text = "JAYYY---------------------------------------------MENU" 
 Title.TextColor3 = Color3.new(1,1,1); Title.Font = Enum.Font.Code; Title.BackgroundTransparency = 1; Title.TextXAlignment = 0; Title.TextSize = 13
 
--- Sidebar (Empty Main Menu)
+-- Sidebar
 local Sidebar = Instance.new("Frame", Main)
 Sidebar.Size = UDim2.new(0, 150, 1, -50); Sidebar.Position = UDim2.new(0, 5, 0, 45)
 Sidebar.BackgroundColor3 = Color3.fromRGB(0, 0, 0); Sidebar.BackgroundTransparency = 0.5; Instance.new("UICorner", Sidebar)
@@ -67,8 +67,8 @@ local function createBtn(text)
     return b
 end
 
-local eBtn = createBtn("ESP: OFF [E]")
-local aBtn = createBtn("AIM: OFF [Q]")
+local eBtn = createBtn("ESP: OFF [K]")
+local aBtn = createBtn("AIM: OFF [L]")
 local SliderText = Instance.new("TextLabel", Content); SliderText.Size = UDim2.new(0, 240, 0, 30); SliderText.Text = "SCROLL: FOV ["..fovRadius.."]"; SliderText.TextColor3 = Color3.new(1,1,1); SliderText.TextSize = 10; SliderText.BackgroundTransparency = 1; SliderText.Font = Enum.Font.Code
 
 -- [[ SKELETON & BILLBOARD ENGINE ]]
@@ -115,12 +115,33 @@ KeyBtn.MouseButton1Click:Connect(function()
     if KeyInput.Text == CorrectKey then KeyFrame.Visible = false; Main.Visible = true end
 end)
 
-local function toggleE() espEnabled = not espEnabled; eBtn.Text = "ESP: "..(espEnabled and "ON [E]" or "OFF [E]"); eBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(0,0,0) end
-local function toggleQ() aimbotEnabled = not aimbotEnabled; aBtn.Text = "AIM: "..(aimbotEnabled and "ON [Q]" or "OFF [Q]"); aBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0, 100, 200) or Color3.fromRGB(0,0,0) end
+-- UPDATED BIND LOGIC
+local function toggleK() 
+    espEnabled = not espEnabled
+    eBtn.Text = "ESP: "..(espEnabled and "ON [K]" or "OFF [K]")
+    eBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(0,0,0) 
+end
 
-eBtn.MouseButton1Click:Connect(toggleE); aBtn.MouseButton1Click:Connect(toggleQ)
-UserInputService.InputBegan:Connect(function(i, g) if g then return end if i.KeyCode == Enum.KeyCode.E then toggleE() elseif i.KeyCode == Enum.KeyCode.Q then toggleQ() end end)
-Main.InputChanged:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseWheel then fovRadius = math.clamp(fovRadius + (i.Position.Z * 10), 10, maxFOV); SliderText.Text = "SCROLL: FOV ["..fovRadius.."]" end end)
+local function toggleL() 
+    aimbotEnabled = not aimbotEnabled
+    aBtn.Text = "AIM: "..(aimbotEnabled and "ON [L]" or "OFF [L]")
+    aBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0, 100, 200) or Color3.fromRGB(0,0,0) 
+end
+
+eBtn.MouseButton1Click:Connect(toggleK); aBtn.MouseButton1Click:Connect(toggleL)
+
+UserInputService.InputBegan:Connect(function(i, g) 
+    if g then return end 
+    if i.KeyCode == Enum.KeyCode.K then toggleK() 
+    elseif i.KeyCode == Enum.KeyCode.L then toggleL() end 
+end)
+
+Main.InputChanged:Connect(function(i) 
+    if i.UserInputType == Enum.UserInputType.MouseWheel then 
+        fovRadius = math.clamp(fovRadius + (i.Position.Z * 10), 10, maxFOV)
+        SliderText.Text = "SCROLL: FOV ["..fovRadius.."]" 
+    end 
+end)
 
 RunService.RenderStepped:Connect(function()
     local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
