@@ -8,19 +8,19 @@ local Camera = workspace.CurrentCamera
 -- [[ CONFIGURATION ]]
 local espEnabled = false
 local aimbotEnabled = false
-local fovRadius = 50 
-local maxFOV = 350
+local fovRadius = 75 
+local maxFOV = 400
 
 -- [[ DRAWING FOV ]]
 local fov_circle = Drawing.new("Circle")
-fov_circle.Thickness = 1
+fov_circle.Thickness = 1.5
 fov_circle.Radius = fovRadius
-fov_circle.Color = Color3.fromRGB(255, 255, 255)
+fov_circle.Color = Color3.fromRGB(0, 200, 255)
 fov_circle.Visible = false
 
 -- [[ UI SETUP ]]
 local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-ScreenGui.Name = "Jayyy_Final_v13"
+ScreenGui.Name = "Jayyy_Y2K_Chrome"
 
 -- Dragging Logic
 local function makeMovable(obj)
@@ -41,71 +41,93 @@ local function makeMovable(obj)
     end)
 end
 
--- Main Frame (Black & White Graffiti Design)
+-- Main Frame (Y2K Chrome Design)
 local Main = Instance.new("ImageLabel", ScreenGui)
-Main.Size = UDim2.new(0, 240, 0, 260)
-Main.Position = UDim2.new(0.5, -120, 0.5, -130)
-Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Main.Size = UDim2.new(0, 320, 0, 350) -- Made the script bigger
+Main.Position = UDim2.new(0.5, -160, 0.5, -175)
+Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 Main.BorderSizePixel = 0
-Main.Image = "rbxassetid://10850255319" -- Corrected Graffiti Pattern ID
+Main.Image = "rbxassetid://13580435850" -- Custom Chrome/Y2K Pattern ID
 Main.ScaleType = Enum.ScaleType.Crop
-Main.ImageColor3 = Color3.fromRGB(130, 130, 130) -- Matches your grey/dark look
 local MainCorner = Instance.new("UICorner", Main)
-MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.CornerRadius = UDim.new(0, 20)
 local MainStroke = Instance.new("UIStroke", Main)
-MainStroke.Color = Color3.fromRGB(80, 150, 255)
-MainStroke.Thickness = 1.5
-MainStroke.Transparency = 0.4
+MainStroke.Color = Color3.fromRGB(0, 255, 255)
+MainStroke.Thickness = 2
 makeMovable(Main)
 
--- Scroll Area (Top)
-local SliderBack = Instance.new("Frame", Main)
-SliderBack.Size = UDim2.new(1, -30, 0, 45); SliderBack.Position = UDim2.new(0, 15, 0, 15)
-SliderBack.BackgroundColor3 = Color3.fromRGB(0, 0, 0); SliderBack.BackgroundTransparency = 0.7; Instance.new("UICorner", SliderBack)
+-- Content Holder (Centers everything inside)
+local Holder = Instance.new("Frame", Main)
+Holder.Size = UDim2.new(1, 0, 1, 0)
+Holder.BackgroundTransparency = 1
 
-local SliderText = Instance.new("TextLabel", SliderBack)
-SliderText.Size = UDim2.new(1, 0, 1, 0); SliderText.Text = "SCROLL TO RESIZE\nFOV: 50"; SliderText.TextColor3 = Color3.new(1,1,1)
-SliderText.BackgroundTransparency = 1; SliderText.Font = Enum.Font.Code; SliderText.TextSize = 13
+local Layout = Instance.new("UIListLayout", Holder)
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Layout.VerticalAlignment = Enum.VerticalAlignment.Center
+Layout.Padding = UDim.new(0, 15)
 
--- ESP Button (Grey - Middle)
-local eBtn = Instance.new("TextButton", Main)
-eBtn.Size = UDim2.new(1, -30, 0, 40)
-eBtn.Position = UDim2.new(0, 15, 0, 75)
+-- Header
+local Title = Instance.new("TextLabel", Holder)
+Title.Size = UDim2.new(0, 200, 0, 40)
+Title.Text = "JAYYY ON TOP"
+Title.TextColor3 = Color3.fromRGB(200, 100, 255) -- Y2K Purple/Pink
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 22
+Title.BackgroundTransparency = 1
+
+-- ESP Button
+local eBtn = Instance.new("TextButton", Holder)
+eBtn.Size = UDim2.new(0, 220, 0, 45)
 eBtn.Text = "ESP: OFF [K]"
-eBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120) -- Matched Grey
+eBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 eBtn.TextColor3 = Color3.new(1,1,1)
-eBtn.Font = Enum.Font.Code; eBtn.TextSize = 15
+eBtn.Font = Enum.Font.Code
+eBtn.TextSize = 16
 Instance.new("UICorner", eBtn)
+local eStroke = Instance.new("UIStroke", eBtn)
+eStroke.Color = Color3.fromRGB(255, 50, 50)
 
--- AIM Button (Blue - Bottom)
-local aBtn = Instance.new("TextButton", Main)
-aBtn.Size = UDim2.new(1, -30, 0, 40)
-aBtn.Position = UDim2.new(0, 15, 0, 130)
+-- AIM Button
+local aBtn = Instance.new("TextButton", Holder)
+aBtn.Size = UDim2.new(0, 220, 0, 45)
 aBtn.Text = "AIM: OFF [L]"
-aBtn.BackgroundColor3 = Color3.fromRGB(0, 135, 230) -- Matched Blue
+aBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
 aBtn.TextColor3 = Color3.new(1,1,1)
-aBtn.Font = Enum.Font.Code; aBtn.TextSize = 15
+aBtn.Font = Enum.Font.Code
+aBtn.TextSize = 16
 Instance.new("UICorner", aBtn)
+local aStroke = Instance.new("UIStroke", aBtn)
+aStroke.Color = Color3.fromRGB(0, 255, 255)
 
--- Credit (Centered at the Bottom)
-local Credits = Instance.new("TextLabel", Main)
-Credits.Size = UDim2.new(1, 0, 0, 30)
-Credits.Position = UDim2.new(0, 0, 1, -35)
+-- Scroll Info
+local SliderText = Instance.new("TextLabel", Holder)
+SliderText.Size = UDim2.new(0, 250, 0, 40)
+SliderText.Text = "SCROLL TO RESIZE FOV: " .. fovRadius
+SliderText.TextColor3 = Color3.new(1,1,1)
+SliderText.BackgroundTransparency = 1
+SliderText.Font = Enum.Font.Code
+SliderText.TextSize = 14
+
+-- Footer
+local Credits = Instance.new("TextLabel", Holder)
+Credits.Size = UDim2.new(0, 200, 0, 30)
 Credits.Text = "Jayyy Luvs You"
 Credits.TextColor3 = Color3.fromRGB(255, 255, 255)
-Credits.BackgroundTransparency = 1; Credits.Font = Enum.Font.Code; Credits.TextSize = 16
+Credits.BackgroundTransparency = 1
+Credits.Font = Enum.Font.Code
+Credits.TextSize = 16
 
--- [[ FUNCTIONALITY ]]
+-- [[ LOGIC ]]
 local function toggleK()
     espEnabled = not espEnabled
     eBtn.Text = "ESP: " .. (espEnabled and "ON [K]" or "OFF [K]")
-    eBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(180, 50, 50) or Color3.fromRGB(120, 120, 120)
+    eBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(100, 20, 20) or Color3.fromRGB(50, 50, 50)
 end
 
 local function toggleL()
     aimbotEnabled = not aimbotEnabled
     aBtn.Text = "AIM: " .. (aimbotEnabled and "ON [L]" or "OFF [L]")
-    aBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0, 100, 200) or Color3.fromRGB(0, 135, 230)
+    aBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0, 80, 180) or Color3.fromRGB(0, 120, 215)
 end
 
 UserInputService.InputBegan:Connect(function(input, gpe)
@@ -116,15 +138,14 @@ end)
 
 Main.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseWheel then
-        fovRadius = math.clamp(fovRadius + (input.Position.Z * 7), 10, maxFOV)
-        SliderText.Text = "SCROLL TO RESIZE\nFOV: " .. fovRadius
+        fovRadius = math.clamp(fovRadius + (input.Position.Z * 10), 10, maxFOV)
+        SliderText.Text = "SCROLL TO RESIZE FOV: " .. fovRadius
     end
 end)
 
 eBtn.MouseButton1Click:Connect(toggleK)
 aBtn.MouseButton1Click:Connect(toggleL)
 
--- Render Loop for FOV Circle
 RunService.RenderStepped:Connect(function()
     fov_circle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
     fov_circle.Visible = aimbotEnabled
