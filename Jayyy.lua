@@ -20,7 +20,7 @@ fov_circle.Visible = false
 
 -- [[ UI SETUP ]]
 local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-ScreenGui.Name = "Jayyy_Landscape_v15"
+ScreenGui.Name = "Jayyy_Ultra_v16"
 
 local function makeMovable(obj)
     local dragging, dragStart, startPos
@@ -40,92 +40,76 @@ local function makeMovable(obj)
     end)
 end
 
--- Main Frame (Landscape Size)
-local Main = Instance.new("ImageLabel", ScreenGui)
-Main.Size = UDim2.new(0, 450, 0, 300) -- Landscape Ratio
-Main.Position = UDim2.new(0.5, -225, 0.5, -150)
+-- Main Landscape Frame
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 600, 0, 350) -- Large Landscape
+Main.Position = UDim2.new(0.5, -300, 0.5, -175)
 Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 Main.BorderSizePixel = 0
-Main.Image = "rbxassetid://13580435850" -- Y2K Background
-Main.ScaleType = Enum.ScaleType.Crop
-local MainCorner = Instance.new("UICorner", Main); MainCorner.CornerRadius = UDim.new(0, 15)
-local MainStroke = Instance.new("UIStroke", Main); MainStroke.Color = Color3.fromRGB(0, 255, 255); MainStroke.Thickness = 2
+local MainCorner = Instance.new("UICorner", Main); MainCorner.CornerRadius = UDim.new(0, 10)
+local MainStroke = Instance.new("UIStroke", Main); MainStroke.Color = Color3.fromRGB(50, 50, 50); MainStroke.Thickness = 2
 makeMovable(Main)
 
--- Top Tab Bar (Table Style)
-local TabBar = Instance.new("Frame", Main)
-TabBar.Size = UDim2.new(1, 0, 0, 45)
-TabBar.BackgroundTransparency = 0.5
-TabBar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-local TabCorner = Instance.new("UICorner", TabBar); TabCorner.CornerRadius = UDim.new(0, 15)
+-- Top Bar Branding
+local TopBar = Instance.new("Frame", Main)
+TopBar.Size = UDim2.new(1, 0, 0, 40)
+TopBar.BackgroundTransparency = 1
+local Title = Instance.new("TextLabel", TopBar)
+Title.Size = UDim2.new(1, -20, 1, 0); Title.Position = UDim2.new(0, 15, 0, 0)
+Title.Text = "JAYYY---------------------------------------------MENU" -- Style from reference
+Title.TextColor3 = Color3.new(1,1,1); Title.Font = Enum.Font.Code; Title.TextSize = 16; Title.TextXAlignment = Enum.TextXAlignment.Left; Title.BackgroundTransparency = 1
 
-local MainTabBtn = Instance.new("TextLabel", TabBar)
-MainTabBtn.Size = UDim2.new(0, 150, 1, 0)
-MainTabBtn.Position = UDim2.new(0, 15, 0, 0)
-MainTabBtn.Text = "MAIN CHEAT"
-MainTabBtn.TextColor3 = Color3.fromRGB(0, 255, 255)
-MainTabBtn.Font = Enum.Font.GothamBold
-MainTabBtn.TextSize = 18
-MainTabBtn.BackgroundTransparency = 1
+-- Sidebar
+local Sidebar = Instance.new("Frame", Main)
+Sidebar.Size = UDim2.new(0, 150, 1, -40); Sidebar.Position = UDim2.new(0, 0, 0, 40)
+Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+local SidebarCorner = Instance.new("UICorner", Sidebar); SidebarCorner.CornerRadius = UDim.new(0, 10)
+local SidebarLine = Instance.new("Frame", Sidebar) -- Vertical separator
+SidebarLine.Size = UDim2.new(0, 2, 0.9, 0); SidebarLine.Position = UDim2.new(1, -2, 0.05, 0); SidebarLine.BackgroundColor3 = Color3.fromRGB(100, 100, 100); SidebarLine.BorderSizePixel = 0
 
--- Content Container (Centered)
+local SideLayout = Instance.new("UIListLayout", Sidebar)
+SideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center; SideLayout.Padding = UDim.new(0, 10)
+
+local function createSideBtn(text)
+    local b = Instance.new("TextButton", Sidebar)
+    b.Size = UDim2.new(0, 130, 0, 35); b.Text = text; b.BackgroundTransparency = 1
+    b.TextColor3 = Color3.new(1,1,1); b.Font = Enum.Font.GothamBold; b.TextSize = 13
+    return b
+end
+local mainTab = createSideBtn("MAIN MENU") --
+createSideBtn("AIMBOT MENU"); createSideBtn("PLAYER MENU"); createSideBtn("SETTING")
+
+-- Main Cheat Area (Inside Table)
 local Container = Instance.new("Frame", Main)
-Container.Size = UDim2.new(1, -40, 1, -70)
-Container.Position = UDim2.new(0, 20, 0, 60)
+Container.Size = UDim2.new(1, -170, 1, -60); Container.Position = UDim2.new(0, 160, 0, 50)
 Container.BackgroundTransparency = 1
+local Layout = Instance.new("UIListLayout", Container); Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center; Layout.VerticalAlignment = Enum.VerticalAlignment.Center; Layout.Padding = UDim.new(0, 20)
 
-local Layout = Instance.new("UIListLayout", Container)
-Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-Layout.VerticalAlignment = Enum.VerticalAlignment.Center
-Layout.Padding = UDim.new(0, 12)
-
--- ESP Toggle
+-- Toggles
 local eBtn = Instance.new("TextButton", Container)
-eBtn.Size = UDim2.new(0, 300, 0, 45)
-eBtn.Text = "ESP: OFF [K]"
-eBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-eBtn.TextColor3 = Color3.new(1,1,1)
-eBtn.Font = Enum.Font.Code; eBtn.TextSize = 16
-Instance.new("UICorner", eBtn)
-Instance.new("UIStroke", eBtn).Color = Color3.fromRGB(255, 255, 255)
+eBtn.Size = UDim2.new(0, 300, 0, 45); eBtn.Text = "ESP: OFF [K]"; eBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+eBtn.TextColor3 = Color3.new(1,1,1); eBtn.Font = Enum.Font.Code; eBtn.TextSize = 16
+Instance.new("UICorner", eBtn); Instance.new("UIStroke", eBtn).Color = Color3.fromRGB(255, 255, 255)
 
--- AIM Toggle
 local aBtn = Instance.new("TextButton", Container)
-aBtn.Size = UDim2.new(0, 300, 0, 45)
-aBtn.Text = "AIM: OFF [L]"
-aBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-aBtn.TextColor3 = Color3.new(1,1,1)
-aBtn.Font = Enum.Font.Code; aBtn.TextSize = 16
-Instance.new("UICorner", aBtn)
-Instance.new("UIStroke", aBtn).Color = Color3.fromRGB(0, 255, 255)
+aBtn.Size = UDim2.new(0, 300, 0, 45); aBtn.Text = "AIM: OFF [L]"; aBtn.BackgroundColor3 = Color3.fromRGB(0, 60, 120)
+aBtn.TextColor3 = Color3.new(1,1,1); aBtn.Font = Enum.Font.Code; aBtn.TextSize = 16
+Instance.new("UICorner", aBtn); Instance.new("UIStroke", aBtn).Color = Color3.fromRGB(0, 255, 255)
 
--- FOV Info
 local SliderText = Instance.new("TextLabel", Container)
-SliderText.Size = UDim2.new(0, 300, 0, 40)
-SliderText.Text = "SCROLL OVER HERE: FOV [" .. fovRadius .. "]"
-SliderText.TextColor3 = Color3.new(1,1,1)
-SliderText.BackgroundTransparency = 1
-SliderText.Font = Enum.Font.Code; SliderText.TextSize = 14
-
--- Footer Credit
-local Credits = Instance.new("TextLabel", Main)
-Credits.Size = UDim2.new(1, 0, 0, 30)
-Credits.Position = UDim2.new(0, 0, 1, -30)
-Credits.Text = "Developed by: Jayyy"
-Credits.TextColor3 = Color3.fromRGB(200, 200, 200)
-Credits.BackgroundTransparency = 1; Credits.Font = Enum.Font.Code; Credits.TextSize = 14
+SliderText.Size = UDim2.new(0, 300, 0, 40); SliderText.Text = "SCROLL TO RESIZE FOV: " .. fovRadius
+SliderText.TextColor3 = Color3.new(1,1,1); SliderText.BackgroundTransparency = 1; SliderText.Font = Enum.Font.Code; SliderText.TextSize = 14
 
 -- [[ LOGIC ]]
 local function toggleK()
     espEnabled = not espEnabled
     eBtn.Text = "ESP: " .. (espEnabled and "ON [K]" or "OFF [K]")
-    eBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(100, 20, 20) or Color3.fromRGB(40, 40, 40)
+    eBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(100, 20, 20) or Color3.fromRGB(30, 30, 30)
 end
-
 local function toggleL()
     aimbotEnabled = not aimbotEnabled
     aBtn.Text = "AIM: " .. (aimbotEnabled and "ON [L]" or "OFF [L]")
-    aBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0, 80, 180) or Color3.fromRGB(0, 120, 215)
+    aBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0, 40, 80) or Color3.fromRGB(0, 60, 120)
 end
 
 UserInputService.InputBegan:Connect(function(input, gpe)
@@ -137,15 +121,13 @@ end)
 Main.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseWheel then
         fovRadius = math.clamp(fovRadius + (input.Position.Z * 10), 10, maxFOV)
-        SliderText.Text = "SCROLL OVER HERE: FOV [" .. fovRadius .. "]"
+        SliderText.Text = "SCROLL TO RESIZE FOV: " .. fovRadius
     end
 end)
 
-eBtn.MouseButton1Click:Connect(toggleK)
-aBtn.MouseButton1Click:Connect(toggleL)
+eBtn.MouseButton1Click:Connect(toggleK); aBtn.MouseButton1Click:Connect(toggleL)
 
 RunService.RenderStepped:Connect(function()
     fov_circle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    fov_circle.Visible = aimbotEnabled
-    fov_circle.Radius = fovRadius
+    fov_circle.Visible = aimbotEnabled; fov_circle.Radius = fovRadius
 end)
