@@ -3,111 +3,114 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
-local Mouse = LocalPlayer:GetMouse()
 
 -- [[ CONFIGURATION ]]
 local CorrectKey = "JAY-39MF-7XQ5-2LY8"
 local espEnabled, aimbotEnabled = false, false
-local fovRadius = 75 
-local smoothing = 0.2 -- Lower = faster/snappier
+local fovRadius = 100
+local smoothing = 0.15 -- Adjust for "snap" speed
 
--- [[ DRAWING OBJECTS ]]
-local fovCircle = Drawing.new("Circle")
-fovCircle.Thickness = 1
-fovCircle.Color = Color3.fromRGB(0, 255, 255)
-fovCircle.Visible = false
+-- [[ FOV CIRCLE (Center of Screen) ]]
+local fov_circle = Drawing.new("Circle")
+fov_circle.Thickness = 1
+fov_circle.Color = Color3.fromRGB(0, 255, 255)
+fov_circle.Transparency = 0.7
+fov_circle.Filled = false
+fov_circle.Visible = false
 
--- [[ AIMBOT ENGINE ]]
-local function getClosestPlayer()
+-- [[ AIMBOT LOGIC (Center Lock) ]]
+local function getClosestToCenter()
     local target = nil
-    local dist = fovRadius
+    local shortestDist = fovRadius
+    local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+
     for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local pos, onScreen = Camera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
-            local mouseDist = (Vector2.new(pos.X, pos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
-            if onScreen and mouseDist < dist then
-                dist = mouseDist
-                target = plr
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 then
+            local pos, onScreen = Camera:WorldToViewportPoint(plr.Character.Head.Position)
+            if onScreen then
+                local dist = (Vector2.new(pos.X, pos.Y) - screenCenter).Magnitude
+                if dist < shortestDist then
+                    shortestDist = dist
+                    target = plr
+                end
             end
         end
     end
     return target
 end
 
--- [[ ESP ENGINE ]]
-local function createESP(plr)
-    local box = Drawing.new("Square")
-    box.Thickness = 1
-    box.Filled = false
-    box.Color = Color3.fromRGB(255, 255, 255)
-    
-    local updater
-    updater = RunService.RenderStepped:Connect(function()
-        if espEnabled and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local rootPos, onScreen = Camera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
-            if onScreen then
-                box.Size = Vector2.new(2000 / rootPos.Z, 2500 / rootPos.Z)
-                box.Position = Vector2.new(rootPos.X - box.Size.X / 2, rootPos.Y - box.Size.Y / 2)
-                box.Visible = true
-            else
-                box.Visible = false
-            end
-        else
-            box.Visible = false
-            if not plr or not plr.Parent then
-                box:Remove()
-                updater:Disconnect()
-            end
-        end
-    end)
+-- [[ HIGHLIGHT ESP (No Boxes) ]]
+local function applyWallhack(plr)
+    local function setup(char)
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "JayyyWallhack"
+        highlight.FillColor = Color3.fromRGB(0, 255, 255)
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        highlight.FillTransparency = 0.5
+        highlight.OutlineTransparency = 0
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Parent = char
+        
+        RunService.RenderStepped:Connect(function()
+            highlight.Enabled = espEnabled
+        end)
+    end
+    if plr.Character then setup(plr.Character) end
+    plr.CharacterAdded:Connect(setup)
 end
 
--- Initialize ESP for players
-for _, p in pairs(Players:GetPlayers()) do if p ~= LocalPlayer then createESP(p) end end
-Players.PlayerAdded:Connect(createESP)
+for _, p in pairs(Players:GetPlayers()) do applyWallhack(p) end
+Players.PlayerAdded:Connect(applyWallhack)
 
--- [[ UI & DRAGGING ]]
+-- [[ UI SETUP ]]
 local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+
+-- Main Menu (Movable)
 local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0, 550, 0, 320); Main.Position = UDim2.new(0.5, -275, 0.5, -160)
-Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10); Main.Visible = false; Instance.new("UICorner", Main)
-local MainStroke = Instance.new("UIStroke", Main); MainStroke.Color = Color3.fromRGB(45, 45, 45)
+Main.Size = UDim2.new(0, 500, 0, 300); Main.Position = UDim2.new(0.5, -250, 0.5, -150)
+Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10); Main.Visible = false; Main.Active = true; Main.Draggable = true
+Instance.new("UICorner", Main)
+Instance.new("UIStroke", Main).Color = Color3.fromRGB(50, 50, 50)
 
--- Sidebar & Buttons (Layout as requested)
+-- Sidebar Branding
 local Sidebar = Instance.new("Frame", Main)
-Sidebar.Size = UDim2.new(0, 150, 1, -50); Sidebar.Position = UDim2.new(0, 5, 0, 45)
+Sidebar.Size = UDim2.new(0, 140, 1, -50); Sidebar.Position = UDim2.new(0, 5, 0, 45)
 Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Instance.new("UICorner", Sidebar)
-local STitle = Instance.new("TextLabel", Sidebar); STitle.Size = UDim2.new(1,0,0,40); STitle.Text = "MAIN MENU"; STitle.TextColor3 = Color3.new(1,1,1); STitle.Font = Enum.Font.GothamBold; STitle.TextSize = 12; STitle.BackgroundTransparency = 1
+local STitle = Instance.new("TextLabel", Sidebar); STitle.Size = UDim2.new(1,0,0,40); STitle.Text = "MAIN MENU"; STitle.TextColor3 = Color3.new(1,1,1); STitle.Font = Enum.Font.GothamBold; STitle.TextSize = 11; STitle.BackgroundTransparency = 1
 
-local Center = Instance.new("Frame", Main)
-Center.Size = UDim2.new(1, -170, 1, -60); Center.Position = UDim2.new(0, 160, 0, 50); Center.BackgroundTransparency = 1
-local Layout = Instance.new("UIListLayout", Center); Layout.HorizontalAlignment = 1; Layout.VerticalAlignment = 1; Layout.Padding = UDim.new(0, 12)
+-- Center Toggles
+local CenterContainer = Instance.new("Frame", Main)
+CenterContainer.Size = UDim2.new(1, -160, 1, -60); CenterContainer.Position = UDim2.new(0, 155, 0, 50); CenterContainer.BackgroundTransparency = 1
+local Layout = Instance.new("UIListLayout", CenterContainer); Layout.HorizontalAlignment = 1; Layout.VerticalAlignment = 1; Layout.Padding = UDim.new(0, 15)
 
-local eBtn = Instance.new("TextButton", Center); eBtn.Size = UDim2.new(0, 260, 0, 40); eBtn.Text = "ESP: OFF [K]"; eBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35); eBtn.TextColor3 = Color3.new(1,1,1); eBtn.TextSize = 11; eBtn.Font = Enum.Font.Code; Instance.new("UICorner", eBtn)
-local aBtn = Instance.new("TextButton", Center); aBtn.Size = UDim2.new(0, 260, 0, 40); aBtn.Text = "AIM: OFF [L]"; aBtn.BackgroundColor3 = Color3.fromRGB(0, 70, 140); aBtn.TextColor3 = Color3.new(1,1,1); aBtn.TextSize = 11; aBtn.Font = Enum.Font.Code; Instance.new("UICorner", aBtn)
-local SliderText = Instance.new("TextLabel", Center); SliderText.Size = UDim2.new(0, 260, 0, 35); SliderText.Text = "SCROLL TO ADJUST FOV: " .. fovRadius; SliderText.TextColor3 = Color3.new(1,1,1); SliderText.TextSize = 11; SliderText.BackgroundTransparency = 1; SliderText.Font = Enum.Font.Code
+local eBtn = Instance.new("TextButton", CenterContainer); eBtn.Size = UDim2.new(0, 220, 0, 35); eBtn.Text = "WALLHACK: OFF [K]"; eBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30); eBtn.TextColor3 = Color3.new(1,1,1); eBtn.TextSize = 10; eBtn.Font = Enum.Font.Code; Instance.new("UICorner", eBtn)
+local aBtn = Instance.new("TextButton", CenterContainer); aBtn.Size = UDim2.new(0, 220, 0, 35); aBtn.Text = "AIMLOCK: OFF [L]"; aBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 160); aBtn.TextColor3 = Color3.new(1,1,1); aBtn.TextSize = 10; aBtn.Font = Enum.Font.Code; Instance.new("UICorner", aBtn)
+local SliderText = Instance.new("TextLabel", CenterContainer); SliderText.Size = UDim2.new(0, 220, 0, 30); SliderText.Text = "SCROLL: FOV ["..fovRadius.."]"; SliderText.TextColor3 = Color3.new(1,1,1); SliderText.TextSize = 10; SliderText.BackgroundTransparency = 1; SliderText.Font = Enum.Font.Code
 
--- [[ MAIN LOOP ]]
-RunService.RenderStepped:Connect(function()
-    if aimbotEnabled then
-        fovCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
-        fovCircle.Visible = true
-        fovCircle.Radius = fovRadius
-        
-        local target = getClosestPlayer()
-        if target and target.Character and target.Character:FindFirstChild("Head") then
-            local targetPos = Camera:WorldToViewportPoint(target.Character.Head.Position)
-            mousemoverel((targetPos.X - Mouse.X) * smoothing, (targetPos.Y - Mouse.Y) * smoothing)
-        end
-    else
-        fovCircle.Visible = false
-    end
+-- [[ KEY SYSTEM ]]
+local KeyFrame = Instance.new("Frame", ScreenGui); KeyFrame.Size = UDim2.new(0, 300, 0, 140); KeyFrame.Position = UDim2.new(0.5, -150, 0.5, -70); KeyFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); KeyFrame.Active = true; KeyFrame.Draggable = true; Instance.new("UICorner", KeyFrame)
+local KeyInput = Instance.new("TextBox", KeyFrame); KeyInput.Size = UDim2.new(0, 200, 0, 30); KeyInput.Position = UDim2.new(0.5, -100, 0.3, 0); KeyInput.PlaceholderText = "Paste Key..."; KeyInput.BackgroundColor3 = Color3.fromRGB(25, 25, 25); KeyInput.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", KeyInput)
+local KeyBtn = Instance.new("TextButton", KeyFrame); KeyBtn.Size = UDim2.new(0, 80, 0, 30); KeyBtn.Position = UDim2.new(0.5, -40, 0.65, 0); KeyBtn.Text = "LOGIN"; KeyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215); KeyBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", KeyBtn)
+
+-- [[ EXECUTION ]]
+KeyBtn.MouseButton1Click:Connect(function()
+    if KeyInput.Text == CorrectKey then KeyFrame.Visible = false; Main.Visible = true end
 end)
 
--- Functionality & Keybinds
-local function toggleK() espEnabled = not espEnabled; eBtn.Text = "ESP: "..(espEnabled and "ON [K]" or "OFF [K]"); eBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(130,0,0) or Color3.fromRGB(35,35,35) end
-local function toggleL() aimbotEnabled = not aimbotEnabled; aBtn.Text = "AIM: "..(aimbotEnabled and "ON [L]" or "OFF [L]"); aBtn.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0,40,90) or Color3.fromRGB(0,70,140) end
+local function toggleK() espEnabled = not espEnabled; eBtn.Text = "WALLHACK: "..(espEnabled and "ON [K]" or "OFF [K]") end
+local function toggleL() aimbotEnabled = not aimbotEnabled; aBtn.Text = "AIMLOCK: "..(aimbotEnabled and "ON [L]" or "OFF [L]"); fov_circle.Visible = aimbotEnabled end
 
 eBtn.MouseButton1Click:Connect(toggleK); aBtn.MouseButton1Click:Connect(toggleL)
 UserInputService.InputBegan:Connect(function(i, g) if g then return end if i.KeyCode == Enum.KeyCode.K then toggleK() elseif i.KeyCode == Enum.KeyCode.L then toggleL() end end)
-Main.InputChanged:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseWheel then fovRadius = math.clamp(fovRadius + (i.Position.Z * 10), 10, maxFOV); SliderText.Text = "SCROLL TO ADJUST FOV: "..fovRadius end end)
+Main.InputChanged:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseWheel then fovRadius = math.clamp(fovRadius + (i.Position.Z * 10), 20, 600); SliderText.Text = "SCROLL: FOV ["..fovRadius.."]" end end)
+
+RunService.RenderStepped:Connect(function()
+    fov_circle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    fov_circle.Radius = fovRadius
+    if aimbotEnabled then
+        local target = getClosestToCenter()
+        if target and target.Character and target.Character:FindFirstChild("Head") then
+            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, target.Character.Head.Position), smoothing)
+        end
+    end
+end)
